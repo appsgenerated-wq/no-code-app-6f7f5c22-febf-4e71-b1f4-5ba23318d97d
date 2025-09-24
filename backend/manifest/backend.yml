@@ -1,0 +1,48 @@
+name: GourmetGo
+description: Discover and share amazing recipes from around the world.
+
+features:
+  authentication:
+    user_entity: User
+    jwt_secret: env(JWT_SECRET)
+
+entities:
+  User:
+    properties:
+      name: string(required=true)
+      email: string(unique=true, required=true)
+      password: password
+      role:
+        type: enum
+        values: [Admin, User]
+        default: User
+    relationships:
+      - type: hasMany
+        entity: Recipe
+        foreignKey: authorId
+
+  Recipe:
+    properties:
+      title: string(required=true)
+      description: string(required=true)
+      imageUrl: file
+      prepTime: number # in minutes
+      cookTime: number # in minutes
+      servings: number
+      ingredients:
+        type: array
+        items: string
+      instructions:
+        type: array
+        items: string
+    relationships:
+      - type: belongsTo
+        entity: User
+        foreignKey: authorId
+    access_policies:
+      - role: Admin
+        permissions: [create, read, update, delete]
+      - role: User # Authenticated users
+        permissions: [create, read, update, delete] # Assuming ownership is handled by backend logic
+      - role: Public # Unauthenticated users
+        permissions: [read]
